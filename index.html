@@ -9,6 +9,17 @@ body {
 }
 </style>
 <body>
+
+<label>.db file</label><br>
+<input type="file" id="inputDb1"/><br>
+<br><br>
+<label>.wal file</label><br>
+<input type="file" id="inputWal1"/><br>
+<br><br>
+<button id="button1">
+    Click to load .db and optional .wal file
+</button><br>
+
 <script src='sql-wasm-debug.js'></script>
 <script>
 /* jslint utility2:true */
@@ -21,9 +32,33 @@ body {
             return filename;
         }
     });
-    function readTable(database) {
+    document.querySelector(
+        "#button1"
+    ).addEventListener("click", async function () {
+        var database;
+        var fileDb;
+        var fileWal;
         var row;
-        var stmt = database.prepare("SELECT * FROM users");
+        var stmt;
+        // read file from #inputDb1
+        fileDb = new Uint8Array(
+            await document.querySelector(
+                "#inputDb1"
+            ).files[0].arrayBuffer()
+        );
+        // read file from optional #inputWal1
+        try {
+            fileWal = new Uint8Array(
+                await document.querySelector(
+                    "#inputWal1"
+                ).files[0].arrayBuffer()
+            );
+        } catch (errCaught) {
+            console.error(errCaught);
+        }
+        database = new SQL.Database(fileDb, fileWal);
+        // read table
+        stmt = database.prepare("SELECT * FROM employees");
         stmt.getAsObject({
             $start: 1,
             $end: 1
@@ -36,34 +71,7 @@ body {
             row = stmt.getAsObject();
             console.log(row);
         }
-    }
-    window.handleFiles = async function () {
-        var fileDb;
-        var fileWal;
-        // read file from #inputDb1
-        fileDb = new Uint8Array(
-            await document.querySelector(
-                "#inputDb1"
-            ).files[0].arrayBuffer()
-        );
-        // read file from #inputWal1
-        fileWal = new Uint8Array(
-            await document.querySelector(
-                "#inputWal1"
-            ).files[0].arrayBuffer()
-        );
-        var database = new SQL.Database(fileDb, fileWal);
-        readTable(database);
-    };
+    });
 }());
 </script>
-    <label>.db file</label><br>
-    <input type="file" id="inputDb1"/><br>
-    <br><br>
-    <label>.wal file</label><br>
-    <input type="file" id="inputWal1"/><br>
-    <br><br>
-    <button onclick="window.handleFiles()">
-        Click to load .db and optional .wal file
-    </button><br>
 </body>
