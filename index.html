@@ -2,33 +2,40 @@
 <html>
 <script src='sql-wasm-debug.js'></script>
 <script>
-    config = {
+/* jslint utility2:true */
+(async function () {
+    "use strict";
+
+    initSqlJs({
         locateFile: (filename, prefix) => {
             console.log(`prefix is : ${prefix}`);
             return `${filename}`;
         }
-    }
-
-    initSqlJs(config).then(function (SQL) {
-    });
+    }).then(function (SQL) {});
 
     function openSqliteDb(reader) {
         setTimeout(function () {
-            if(reader.readyState == reader.DONE) {
+            if (reader.readyState == reader.DONE) {
                 var database = new SQL.Database(bin2Array(reader.result));
 
                 readTable(database);
             } else {
-              openSqliteDb(reader);
+                openSqliteDb(reader);
             }
         }, 500);
     }
 
-    function readTable(database){
+    function readTable(database) {
         var stmt = database.prepare("SELECT * FROM users");
-        stmt.getAsObject({ $start: 1, $end: 1 });
+        stmt.getAsObject({
+            $start: 1,
+            $end: 1
+        });
 
-        stmt.bind({ $start: 1, $end: 2 });
+        stmt.bind({
+            $start: 1,
+            $end: 2
+        });
         while (stmt.step()) {
             var row = stmt.getAsObject();
             console.log(row);
@@ -43,13 +50,16 @@
     }
 
     function bin2Array(bin) {
-      'use strict';
-      var i, size = bin.length, ary = [];
-      for (i = 0; i < size; i++) {
-        ary.push(bin.charCodeAt(i) & 0xFF);
-      }
-      return ary;
+      "use strict";
+        var ii;
+        var size = bin.length;
+        var ary = [];
+      for (ii = 0; ii < size; ii++) {
+            ary.push(bin.charCodeAt(ii) & 0xFF);
+        }
+        return ary;
     }
+}());
 </script>
 
 <body>
