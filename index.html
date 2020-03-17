@@ -1,0 +1,57 @@
+<meta charset="utf8" />
+<html>
+<script src='sql-wasm-debug.js'></script>
+<script>
+    config = {
+        locateFile: (filename, prefix) => {
+            console.log(`prefix is : ${prefix}`);
+            return `${filename}`;
+        }
+    }
+
+    initSqlJs(config).then(function (SQL) {
+    });
+
+    function openSqliteDb(reader) {
+        setTimeout(function () {
+            if(reader.readyState == reader.DONE) {
+                var database = new SQL.Database(bin2Array(reader.result));
+
+                readTable(database);
+            } else {
+              openSqliteDb(reader);
+            }
+        }, 500);
+    }
+
+    function readTable(database){
+        var stmt = database.prepare("SELECT * FROM users");
+        stmt.getAsObject({ $start: 1, $end: 1 });
+
+        stmt.bind({ $start: 1, $end: 2 });
+        while (stmt.step()) {
+            var row = stmt.getAsObject();
+            console.log(row);
+        }
+    }
+
+    function handleFiles(files) {
+        var file = files[0];
+        var reader = new FileReader();
+        reader.readAsBinaryString(file);
+        openSqliteDb(reader);
+    }
+
+    function bin2Array(bin) {
+      'use strict';
+      var i, size = bin.length, ary = [];
+      for (i = 0; i < size; i++) {
+        ary.push(bin.charCodeAt(i) & 0xFF);
+      }
+      return ary;
+    }
+</script>
+
+<body>
+    <input type="file" id="input" onchange="handleFiles(this.files)" />
+</body>
